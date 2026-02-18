@@ -58,9 +58,9 @@ def save_users(users):
     with open(USERS_FILE, "w", encoding="utf-8") as f:
         for uid, data in users.items():
             used = ",".join(data["used_articles"])
-f.write(
-    f"{uid}|{data['money']}|{data['articles']}|{data['title']}|{used}\n"
-)
+            f.write(
+                f"{uid}|{data['money']}|{data['articles']}|{data['title']}|{used}\n"
+            )
 
 
 def load_articles(path):
