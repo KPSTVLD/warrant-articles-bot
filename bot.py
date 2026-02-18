@@ -8,10 +8,10 @@ from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filte
 TOKEN = "ВСТАВЬ_СЮДА_СВОЙ_ТОКЕН"
 
 # ====== ФАЙЛЫ ======
-UK_FILE = "ukrv_articles.txt"
-GB_FILE = "gorebox_articles.txt"
-TITLES_FILE = "titles.txt"
-DATA_FILE = "users_data.txt"
+UK_FILE = "data/uk_rf.txt"
+GB_FILE = "data/gb.txt"
+TITLES_FILE = "data/titles.txt"
+DATA_FILE = "data/users_data.txt"
 
 # ====== НАГРАДЫ ======
 NORMAL_REWARD = 100
