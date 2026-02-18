@@ -178,11 +178,7 @@ async def profile(update, context):
 
 
 async def wanted_list(update, context):
-    await update.message.reply_text(
-        "Статистика:\n"
-        "Топ капуста\n"
-        "Топ статьи"
-    )
+    await update.message.reply_text("Список разыскиваемых")
 
 
 async def top_money(update, context):
@@ -266,7 +262,7 @@ def main():
     app.add_handler(CommandHandler("gb_info", gb_info))
 
     app.add_handler(MessageHandler(filters.Regex(r"^Профиль разыскиваемого$"), profile))
-    app.add_handler(MessageHandler(filters.Regex(r"^Список разыскиваемых$"), wanted))
+    app.add_handler(MessageHandler(filters.Regex(r"^Список разыскиваемых$"), wanted_list))
     app.add_handler(MessageHandler(filters.Regex(r"^Топ капусты$"), top_money))
     app.add_handler(MessageHandler(filters.Regex(r"^Топ статей$"), top_articles))
     app.add_handler(MessageHandler(filters.Regex(r"^Магаз титулов$"), shop_titles))
