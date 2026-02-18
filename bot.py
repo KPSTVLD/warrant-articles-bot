@@ -1,6 +1,7 @@
 import asyncio
 
 ARTICLE_LOCK = asyncio.Lock()
+
 import re
 from telegram import Update
 from telegram.ext import (
