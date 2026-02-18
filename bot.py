@@ -83,21 +83,32 @@ def get_user(users, user_id):
             "money": 0,
             "articles": 0,
             "title": "Нет"
+            "used_articles": []   # ← ВАЖНО
         }
     return users[user_id]
 
 
-async def give_article(update: Update, context: ContextTypes.DEFAULT_TYPE, pool):
+async def give_article(update, context, pool):
     users = load_users()
     user = get_user(users, update.effective_user.id)
 
+    used = set(user.get("used_articles", []))
+    available = [a for a in pool if a not in used]
+
+    # если всё выбито — сбрасываем
+    if not available:
+        user["used_articles"] = []
+        available = pool.copy()
+
     loading = await update.message.reply_text("Загрузка...")
 
-    article = random.choice(pool)
-    money = 1 if random.random() < 0.04 else random.randint(5, 20)
+    article = random.choice(available)
 
-    user["money"] += money
+    user["used_articles"].append(article)
     user["articles"] += 1
+
+    money = 1 if random.random() < 0.04 else random.randint(5, 20)
+    user["money"] += money
 
     save_users(users)
 
