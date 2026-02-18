@@ -1,3 +1,6 @@
+import asyncio
+
+ARTICLE_LOCK = asyncio.Lock()
 import re
 from telegram import Update
 from telegram.ext import (
@@ -28,12 +31,28 @@ def load_users():
         for line in f:
             if not line.strip():
                 continue
-            uid, money, articles, title = line.strip().split("|")
-            users[int(uid)] = {
-                "money": int(money),
-                "articles": int(articles),
-                "title": title
+
+            parts = line.strip().split("|")
+
+            if len(parts) < 4:
+    continue
+    
+            uid = int(parts[0])
+            money = int(parts[1])
+            articles = int(parts[2])
+            title = parts[3]
+
+            used_articles = []
+            if len(parts) >= 5 and parts[4]:
+                used_articles = parts[4].split(",")
+
+            users[uid] = {
+                "money": money,
+                "articles": articles,
+                "title": title,
+                "used_articles": used_articles
             }
+
     return users
 
 
@@ -41,7 +60,10 @@ def save_users(users):
     os.makedirs("data", exist_ok=True)
     with open(USERS_FILE, "w", encoding="utf-8") as f:
         for uid, data in users.items():
-            f.write(f"{uid}|{data['money']}|{data['articles']}|{data['title']}\n")
+            used = ",".join(data["used_articles"])
+f.write(
+    f"{uid}|{data['money']}|{data['articles']}|{data['title']}|{used}\n"
+)
 
 
 def load_articles(path):
@@ -89,37 +111,40 @@ def get_user(users, user_id):
 
 
 async def give_article(update, context, pool):
-    users = load_users()
-    user = get_user(users, update.effective_user.id)
+    async with ARTICLE_LOCK:  # 🔒 защита от 1000 запросов сразу
+        users = load_users()
+        user = get_user(users, update.effective_user.id)
 
-    used = set(user.get("used_articles", []))
-    available = [a for a in pool if a not in used]
+        loading = await update.message.reply_text("Загрузка...")
 
-    # если всё выбито — сбрасываем
-    if not available:
-        user["used_articles"] = []
-        available = pool.copy()
+        try:
+            if not pool:
+                await update.message.reply_text("Статьи закончились.")
+                return
 
-    loading = await update.message.reply_text("Загрузка...")
+            available = [a for a in pool if a not in user["used_articles"]]
 
-    article = random.choice(available)
+if not available:
+    await update.message.reply_text("❌ Новых статей больше нет.")
+    return
 
-    user["used_articles"].append(article)
-    user["articles"] += 1
+article = random.choice(available)
+user["used_articles"].append(article)
+            money = 1 if random.random() < 0.04 else random.randint(5, 20)
 
-    money = 1 if random.random() < 0.04 else random.randint(5, 20)
-    user["money"] += money
+            user["money"] += money
+            user["articles"] += 1
+            save_users(users)
 
-    save_users(users)
+            await update.message.reply_text(
+                f"{article}\n\n"
+                f"Капуста: +{money}\n"
+                f"Всего капусты: {user['money']}\n"
+                f"Всего статей: {user['articles']}"
+            )
 
-    await update.message.reply_text(
-        f"{article}\n\n"
-        f"Капуста: +{money}\n"
-        f"Всего капусты: {user['money']}\n"
-        f"Всего статей: {user['articles']}"
-    )
-
-    await loading.delete()
+        finally:
+            await loading.delete()
 
 
 # ---------- КОМАНДЫ ----------
@@ -228,21 +253,15 @@ def main():
     app = Application.builder().token(TOKEN).build()
 
     # ===== СТАТЬИ (РЕГИСТР НЕ ВАЖЕН) =====
-    app.add_handler(
-        MessageHandler(
-            filters.Regex(re.compile(r"^гб статья$", re.IGNORECASE)),
-            gb_article
-        )
-    )
+    MessageHandler(
+    filters.TEXT & filters.Regex(re.compile(r"^гб статья$", re.IGNORECASE)),
+    gb_article
+)
 
-    app.add_handler(
-        MessageHandler(
-            filters.Regex(re.compile(r"^ук рф статья$", re.IGNORECASE)),
-            ukrf_article
-        )
-    )
-
-    # ===== КОМАНДЫ =====
+MessageHandler(
+    filters.TEXT & filters.Regex(re.compile(r"^ук рф статья$", re.IGNORECASE)),
+    ukrf_article
+)  # ===== КОМАНДЫ =====
     app.add_handler(CommandHandler("gb_info", gb_info))
 
     app.add_handler(MessageHandler(filters.Regex(r"^Профиль разыскиваемого$"), profile))
