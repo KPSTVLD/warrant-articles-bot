@@ -5,7 +5,7 @@ from collections import deque
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
 
-TOKEN = os.getenv("BOT_TOKEN")
+TOKEN = os.getenv("TOKEN")
 
 # ====== ФАЙЛЫ ======
 UK_FILE = "data/uk_rf.txt"
