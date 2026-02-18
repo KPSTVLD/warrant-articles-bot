@@ -1,7 +1,14 @@
+from telegram import Update
+from telegram.ext import (
+    Application,
+    MessageHandler,
+    CommandHandler,
+    ContextTypes,
+    filters,
+)
+
 import os
 import random
-from telegram import Update
-from telegram.ext import Application, MessageHandler, ContextTypes, filters
 
 TOKEN = os.getenv("TOKEN")
 
