@@ -82,8 +82,8 @@ def get_user(users, user_id):
         users[user_id] = {
             "money": 0,
             "articles": 0,
-            "title": "Нет"
-            "used_articles": []   # ← ВАЖНО
+            "title": "Нет",
+            "used_articles": []  # ← тут всё ок
         }
     return users[user_id]
 
