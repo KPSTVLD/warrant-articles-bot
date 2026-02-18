@@ -44,6 +44,21 @@ def save_users(users):
             f.write(f"{uid}|{data['money']}|{data['articles']}|{data['title']}\n")
 
 
+def load_articles(path):
+    articles = []
+    if not os.path.exists(path):
+        return articles
+
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            articles.append(line)
+
+    return articles
+
+
 def load_titles():
     titles = {}
     if not os.path.exists(TITLES_FILE):
@@ -55,7 +70,11 @@ def load_titles():
                 continue
             name, price = line.strip().split("|")
             titles[name] = int(price)
+
     return titles
+
+ARTICLES_GB = load_articles("data/gb.txt")
+ARTICLES_UKRF = load_articles("data/uk_rf.txt")
 
 
 def get_user(users, user_id):
@@ -66,22 +85,6 @@ def get_user(users, user_id):
             "title": "Нет"
         }
     return users[user_id]
-
-
-# ---------- СТАТЬИ ----------
-
-ARTICLES_GB = [
-    "Статья 105. Убийство",
-    "Статья 158. Кража",
-    "Статья 161. Грабёж",
-]
-
-ARTICLES_UKRF = [
-    "Статья 105 УК РФ. Убийство",
-    "Статья 158 УК РФ. Кража",
-    "Статья 161 УК РФ. Грабёж",
-    "Статья 162 УК РФ. Разбой",
-]
 
 
 async def give_article(update: Update, context: ContextTypes.DEFAULT_TYPE, pool):
@@ -102,7 +105,7 @@ async def give_article(update: Update, context: ContextTypes.DEFAULT_TYPE, pool)
         f"{article}\n\n"
         f"Капуста: +{money}\n"
         f"Всего капусты: {user['money']}\n"
-        f"Всего статьи: {user['articles']}"
+        f"Всего статей: {user['articles']}"
     )
 
     await loading.delete()
@@ -112,7 +115,6 @@ async def give_article(update: Update, context: ContextTypes.DEFAULT_TYPE, pool)
 
 async def gb_article(update, context):
     await give_article(update, context, ARTICLES_GB)
-
 
 async def ukrf_article(update, context):
     await give_article(update, context, ARTICLES_UKRF)
