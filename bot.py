@@ -1,3 +1,4 @@
+import re
 from telegram import Update
 from telegram.ext import (
     Application,
@@ -213,16 +214,32 @@ async def buy_title(update, context):
 def main():
     app = Application.builder().token(TOKEN).build()
 
-    app.add_handler(MessageHandler(filters.Regex("^Гб статья$"), gb_article))
-    app.add_handler(MessageHandler(filters.Regex("^Ук рф статья$"), ukrf_article))
-    app.add_handler(CommandHandler("gb_info", gb_info))
-    app.add_handler(MessageHandler(filters.Regex("^Профиль разыскиваемого$"), profile))
-    app.add_handler(MessageHandler(filters.Regex("^Список разыскиваемых$"), wanted_list))
-    app.add_handler(MessageHandler(filters.Regex("^Топ капуста$"), top_money))
-    app.add_handler(MessageHandler(filters.Regex("^Топ статьи$"), top_articles))
-    app.add_handler(MessageHandler(filters.Regex("^Магаз титулов$"), shop_titles))
-    app.add_handler(MessageHandler(filters.Regex("^Купить титул .+"), buy_title))
+    # ===== СТАТЬИ (РЕГИСТР НЕ ВАЖЕН) =====
+    app.add_handler(
+        MessageHandler(
+            filters.Regex(re.compile(r"^гб статья$", re.IGNORECASE)),
+            gb_article
+        )
+    )
 
+    app.add_handler(
+        MessageHandler(
+            filters.Regex(re.compile(r"^ук рф статья$", re.IGNORECASE)),
+            ukrf_article
+        )
+    )
+
+    # ===== КОМАНДЫ =====
+    app.add_handler(CommandHandler("gb_info", gb_info))
+
+    app.add_handler(MessageHandler(filters.Regex(r"^Профиль разыскиваемого$"), profile))
+    app.add_handler(MessageHandler(filters.Regex(r"^Список разыскиваемых$"), wanted_list))
+    app.add_handler(MessageHandler(filters.Regex(r"^Топ капуста$"), top_money))
+    app.add_handler(MessageHandler(filters.Regex(r"^Топ статьи$"), top_articles))
+    app.add_handler(MessageHandler(filters.Regex(r"^Магаз титулов$"), shop_titles))
+    app.add_handler(MessageHandler(filters.Regex(r"^Купить титул .+"), buy_title))
+
+    # ===== ЗАПУСК (СТРОГО ПОСЛЕДНИЙ) =====
     app.run_polling()
 
 
