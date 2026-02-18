@@ -1,170 +1,142 @@
-import random
-import time
 import os
-from collections import deque
+import random
 from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
+from telegram.ext import (
+    Application,
+    MessageHandler,
+    ContextTypes,
+    filters,
+)
 
 TOKEN = os.getenv("TOKEN")
 
-# ====== ФАЙЛЫ ======
-UK_FILE = "data/uk_rf.txt"
-GB_FILE = "data/gb.txt"
-TITLES_FILE = "data/titles.txt"
 DATA_FILE = "data/users_data.txt"
 
-# ====== НАГРАДЫ ======
-NORMAL_REWARD = 100
-RARE_REWARD = 1
-RARE_CHANCE = 0.04  # 4%
+ARTICLES_GB = [
+    "Статья 105. Убийство",
+    "Статья 158. Кража",
+    "Статья 161. Грабёж",
+]
 
-# ====== ПАМЯТЬ ======
-uk_queue = deque()
-gb_queue = deque()
-users = {}
+ARTICLES_UKRF = [
+    "Стаття 115. Умисне вбивство",
+    "Стаття 185. Крадіжка",
+    "Стаття 186. Грабіж",
+]
 
-# ====== ЗАГРУЗКА ======
-def load_articles():
-    global uk_queue, gb_queue
-    with open(UK_FILE, encoding="utf-8") as f:
-        uk = [line.strip() for line in f if line.strip()]
-    with open(GB_FILE, encoding="utf-8") as f:
-        gb = [line.strip() for line in f if line.strip()]
-    random.shuffle(uk)
-    random.shuffle(gb)
-    uk_queue = deque(uk)
-    gb_queue = deque(gb)
 
 def load_users():
+    users = {}
     if not os.path.exists(DATA_FILE):
-        return
-    with open(DATA_FILE, encoding="utf-8") as f:
+        return users
+
+    with open(DATA_FILE, "r", encoding="utf-8") as f:
         for line in f:
-            uid, cap, arts, title = line.strip().split("|")
-            users[int(uid)] = {
-                "cap": int(cap),
-                "arts": int(arts),
-                "title": title
+            if not line.strip():
+                continue
+            user_id, money, articles = line.strip().split("|")
+            users[int(user_id)] = {
+                "money": int(money),
+                "articles": int(articles)
             }
+    return users
 
-def save_users():
+
+def save_users(users):
+    os.makedirs("data", exist_ok=True)
     with open(DATA_FILE, "w", encoding="utf-8") as f:
-        for uid, d in users.items():
-            f.write(f"{uid}|{d['cap']}|{d['arts']}|{d['title']}\n")
+        for user_id, data in users.items():
+            f.write(f"{user_id}|{data['money']}|{data['articles']}\n")
 
-# ====== ВСПОМОГ ======
-def get_reward():
-    if random.random() < RARE_CHANCE:
-        return RARE_REWARD
-    return NORMAL_REWARD
 
-def cap_text(n):
-    return "Капуста" if n == 1 else "Капусты"
+async def give_article(update: Update, context: ContextTypes.DEFAULT_TYPE, article_list):
+    user_id = update.effective_user.id
+    users = load_users()
 
-# ====== ВЫДАЧА СТАТЕЙ ======
-async def give_article(update: Update, context: ContextTypes.DEFAULT_TYPE, kind: str):
-    uid = update.effective_user.id
-    name = update.effective_user.first_name
+    if user_id not in users:
+        users[user_id] = {"money": 0, "articles": 0}
 
-    if uid not in users:
-        users[uid] = {"cap": 0, "arts": 0, "title": "Без титула"}
+    loading = await update.message.reply_text("Загрузка...")
 
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text="Проверяю наличие преступника..."
+    article = random.choice(article_list)
+
+    money_gain = 1 if random.random() < 0.04 else random.randint(5, 20)
+
+    users[user_id]["money"] += money_gain
+    users[user_id]["articles"] += 1
+
+    save_users(users)
+
+    await update.message.reply_text(
+        f"{article}\n\n"
+        f"Капуста: +{money_gain}\n"
+        f"Всего капусты: {users[user_id]['money']}\n"
+        f"Всего статьи: {users[user_id]['articles']}"
     )
 
-    time.sleep(1.5)
+    await loading.delete()
 
-    queue = uk_queue if kind == "uk" else gb_queue
-    source = UK_FILE if kind == "uk" else GB_FILE
 
-    if not queue:
-        load_articles()
-        queue = uk_queue if kind == "uk" else gb_queue
+async def gb_article(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await give_article(update, context, ARTICLES_GB)
 
-    article = queue.popleft()
-    reward = get_reward()
 
-    users[uid]["cap"] += reward
-    users[uid]["arts"] += 1
-    save_users()
+async def ukrf_article(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await give_article(update, context, ARTICLES_UKRF)
 
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=(
-            f"{article}\n\n"
-            f"Получено: {reward} {cap_text(reward)}\n"
-            f"Всего статей: {users[uid]['arts']}"
-        )
+
+async def gb_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "Команды бота:\n"
+        "Гб статья\n"
+        "Ук рф статья\n"
+        "гб инфо\n"
+        "Список разыскиваемых"
     )
 
-# ====== КОМАНДЫ ======
-async def handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.message or not update.message.text:
-        return
 
-    text = update.message.text.lower()
+async def wanted_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "Выбери статистику:\n"
+        "Топ капуста\n"
+        "Топ статьи"
+    )
 
-    if text == "ук рф статьи":
-        await give_article(update, context, "uk")
 
-    elif text == "гб статьи":
-        await give_article(update, context, "gb")
+async def top_money(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    users = load_users()
+    sorted_users = sorted(users.items(), key=lambda x: x[1]["money"], reverse=True)[:30]
 
-    elif text == "профиль разыскиваемого":
-        uid = update.effective_user.id
-        if uid not in users:
-            users[uid] = {"cap": 0, "arts": 0, "title": "Без титула"}
-        u = users[uid]
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=(
-                f"Профиль:\n"
-                f"Титул: {u['title']}\n"
-                f"Статей: {u['arts']}\n"
-                f"Капуста: {u['cap']} {cap_text(u['cap'])}"
-            )
-        )
+    text = "Топ 30 по капусте:\n"
+    for i, (uid, data) in enumerate(sorted_users, start=1):
+        text += f"{i}. {uid} — {data['money']} капусты\n"
 
-    elif text == "магаз титулов":
-        if not os.path.exists(TITLES_FILE):
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="Магазин пуст."
-            )
-            return
-        msg = "Магаз титулов:\n"
-        with open(TITLES_FILE, encoding="utf-8") as f:
-            for line in f:
-                name, price = line.strip().split("|")
-                msg += f"{name} — {price} Капусты\n"
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=msg
-        )
+    await update.message.reply_text(text)
 
-    elif text == "гб инфо":
-        total_users = len(users)
-        total_arts = sum(u["arts"] for u in users.values())
-        total_cap = sum(u["cap"] for u in users.values())
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=(
-                f"ГБ Инфо:\n"
-                f"Пользователей: {total_users}\n"
-                f"Всего статей: {total_arts}\n"
-                f"Всего капусты: {total_cap}"
-            )
-        )
 
-# ====== ЗАПУСК ======
+async def top_articles(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    users = load_users()
+    sorted_users = sorted(users.items(), key=lambda x: x[1]["articles"], reverse=True)[:30]
+
+    text = "Топ 30 по статьи:\n"
+    for i, (uid, data) in enumerate(sorted_users, start=1):
+        text += f"{i}. {uid} — {data['articles']} статьи\n"
+
+    await update.message.reply_text(text)
+
+
 def main():
-    load_articles()
-    load_users()
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handler))
+    app = Application.builder().token(TOKEN).build()
+
+    app.add_handler(MessageHandler(filters.Regex("^Гб статья$"), gb_article))
+    app.add_handler(MessageHandler(filters.Regex("^Ук рф статья$"), ukrf_article))
+    app.add_handler(MessageHandler(filters.Regex("^гб инфо$"), gb_info))
+    app.add_handler(MessageHandler(filters.Regex("^Список разыскиваемых$"), wanted_list))
+    app.add_handler(MessageHandler(filters.Regex("^Топ капуста$"), top_money))
+    app.add_handler(MessageHandler(filters.Regex("^Топ статьи$"), top_articles))
+
     app.run_polling()
+
 
 if __name__ == "__main__":
     main()
