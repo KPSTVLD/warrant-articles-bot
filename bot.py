@@ -208,9 +208,7 @@ def main():
 
     app.add_handler(MessageHandler(filters.Regex("^Гб статья$"), gb_article))
     app.add_handler(MessageHandler(filters.Regex("^Ук рф статья$"), ukrf_article))
-    from telegram.ext import CommandHandler
-
-app.add_handler(CommandHandler("gb_info", gb_info))
+    app.add_handler(CommandHandler("gb_info", gb_info))
     app.add_handler(MessageHandler(filters.Regex("^Профиль разыскиваемого$"), profile))
     app.add_handler(MessageHandler(filters.Regex("^Список разыскиваемых$"), wanted_list))
     app.add_handler(MessageHandler(filters.Regex("^Топ капуста$"), top_money))
