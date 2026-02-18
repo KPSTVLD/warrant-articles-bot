@@ -108,7 +108,7 @@ def get_user(users, user_id):
 
 
 async def give_article(update, context, pool):
-    async with ARTICLE_LOCK:  # 🔒 защита от 1000 запросов сразу
+    async with ARTICLE_LOCK:
         users = load_users()
         user = get_user(users, update.effective_user.id)
 
@@ -116,27 +116,27 @@ async def give_article(update, context, pool):
 
         try:
             if not pool:
-                await update.message.reply_text("Статьи закончились.")
+                await update.message.reply_text("Статьи закончились")
                 return
 
             available = [a for a in pool if a not in user["used_articles"]]
 
-if not available:
-    await update.message.reply_text("❌ Новых статей больше нет.")
-    return
+            if not available:
+                await update.message.reply_text("❌ Новых статей больше нет")
+                return
 
-article = random.choice(available)
-user["used_articles"].append(article)
+            article = random.choice(available)
+            user["used_articles"].append(article)
+
             money = 1 if random.random() < 0.04 else random.randint(5, 20)
-
             user["money"] += money
             user["articles"] += 1
             save_users(users)
 
             await update.message.reply_text(
                 f"{article}\n\n"
-                f"Капуста: +{money}\n"
-                f"Всего капусты: {user['money']}\n"
+                f"💰 +{money}\n"
+                f"Всего денег: {user['money']}\n"
                 f"Всего статей: {user['articles']}"
             )
 
