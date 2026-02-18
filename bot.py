@@ -25,9 +25,6 @@ TITLES_FILE = "data/titles.txt"
 
 def load_users():
     users = {}
-    if not os.path.exists(USERS_FILE):
-        return users
-
     with open(USERS_FILE, "r", encoding="utf-8") as f:
         for line in f:
             if not line.strip():
@@ -36,13 +33,12 @@ def load_users():
             parts = line.strip().split("|")
 
             if len(parts) < 4:
-    continue
-    
+                continue
+
             uid = int(parts[0])
             money = int(parts[1])
             articles = int(parts[2])
             title = parts[3]
-
             used_articles = []
             if len(parts) >= 5 and parts[4]:
                 used_articles = parts[4].split(",")
