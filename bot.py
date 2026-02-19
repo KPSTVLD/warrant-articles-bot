@@ -256,7 +256,7 @@ def main():
         )
     )
 
-    application.add_handler(
+    app.add_handler(
     MessageHandler(filters.TEXT & filters.Regex(r"(?i)^гб инфо$"), gb_info)
     )
 
