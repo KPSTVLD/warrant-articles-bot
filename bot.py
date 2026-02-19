@@ -56,14 +56,19 @@ def load_users():
     return users
 
 
-def save_users(users):
-    os.makedirs("data", exist_ok=True)
-    with open(USERS_FILE, "w", encoding="utf-8") as f:
-        for uid, data in users.items():
-            used = ",".join(data["used_articles"])
-            f.write(
-                f"{uid}|{data['money']}|{data['articles']}|{data['title']}|{used}\n"
-            )
+async def save_users(users):
+    async with ARTICLE_LOCK:
+        os.makedirs("data", exist_ok=True)
+        tmp_file = USERS_FILE + ".tmp"
+
+        with open(tmp_file, "w", encoding="utf-8") as f:
+            for uid, data in users.items():
+                used = ",".join(data["used_articles"])
+                f.write(
+                    f"{uid}|{data['money']}|{data['articles']}|{data['title']}|{used}\n"
+                )
+
+        os.replace(tmp_file, USERS_FILE)
 
 
 def load_articles(path):
@@ -149,8 +154,8 @@ async def give_article(update, context, pool):
 
         user["money"] += money
         user["articles"] += 1
-        save_users(users)
 
+        await save_users(users)
         await update.message.reply_text(
             f"{article}\n\n"
             f"🥬 +{money}\n"
@@ -255,7 +260,8 @@ async def buy_title(update, context):
 
     user["money"] -= price
     user["title"] = title_name
-    save_users(users)
+
+    await save_users(users)
 
     await update.message.reply_text(f"Титул {title_name} куплен")
 
