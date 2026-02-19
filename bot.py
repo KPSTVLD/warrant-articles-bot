@@ -25,20 +25,23 @@ TITLES_FILE = "data/titles.txt"
 
 def load_users():
     users = {}
+    if not os.path.exists(USERS_FILE):
+        return users
+
     with open(USERS_FILE, "r", encoding="utf-8") as f:
         for line in f:
             if not line.strip():
                 continue
 
             parts = line.strip().split("|")
-
-            if len(parts) < 4:
+            if len(parts) < 3:
                 continue
 
             uid = int(parts[0])
             money = int(parts[1])
             articles = int(parts[2])
-            title = parts[3]
+            title = parts[3] if len(parts) > 3 else "Нет"
+
             used_articles = []
             if len(parts) >= 5 and parts[4]:
                 used_articles = parts[4].split(",")
@@ -97,14 +100,32 @@ ARTICLES_UKRF = load_articles("data/uk_rf.txt")
 
 
 def get_user(users, user_id):
-    if user_id not in users:
-        users[user_id] = {
+    user = users.get(user_id)
+
+    if not user:
+        user = {
             "money": 0,
             "articles": 0,
             "title": "Нет",
-            "used_articles": []  # ← тут всё ок
+            "used_articles": []
         }
-    return users[user_id]
+        users[user_id] = user
+        return user
+
+    # ⬇️ КРИТИЧЕСКИ ВАЖНО
+    if "used_articles" not in user:
+        user["used_articles"] = []
+
+    if "money" not in user:
+        user["money"] = 0
+
+    if "articles" not in user:
+        user["articles"] = 0
+
+    if "title" not in user:
+        user["title"] = "Нет"
+
+    return user
 
 
 async def give_article(update, context, pool):
