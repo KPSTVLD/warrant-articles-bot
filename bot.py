@@ -108,40 +108,37 @@ def get_user(users, user_id):
 
 
 async def give_article(update, context, pool):
-    async with ARTICLE_LOCK:
-        users = load_users()
-        user = get_user(users, update.effective_user.id)
+    users = load_users()
+    user = get_user(users, update.effective_user.id)
 
-        loading = await update.message.reply_text("Загрузка...")
+    loading = await update.message.reply_text("Загрузка...")
 
-        try:
-            if not pool:
-                await update.message.reply_text("Статьи закончились")
-                return
+    try:
+        if not pool:
+            await update.message.reply_text("Статьи закончились.")
+            return
 
-            available = [a for a in pool if a not in user["used_articles"]]
+        article = random.choice(pool)
 
-            if not available:
-                await update.message.reply_text("❌ Новых статей больше нет")
-                return
+        # НАГРАДА
+        if random.randint(1, 100) <= 4:
+            money = 1
+        else:
+            money = 100
 
-            article = random.choice(available)
-            user["used_articles"].append(article)
+        user["money"] += money
+        user["articles"] += 1
+        save_users(users)
 
-            money = 1 if random.random() < 0.04 else random.randint(5, 20)
-            user["money"] += money
-            user["articles"] += 1
-            save_users(users)
+        await update.message.reply_text(
+            f"{article}\n\n"
+            f"🥬 +{money}\n"
+            f"Всего капусты: {user['money']}\n"
+            f"Всего статей: {user['articles']}"
+        )
 
-            await update.message.reply_text(
-                f"{article}\n\n"
-                f"💰 +{money}\n"
-                f"Всего денег: {user['money']}\n"
-                f"Всего статей: {user['articles']}"
-            )
-
-        finally:
-            await loading.delete()
+    finally:
+        await loading.delete()
 
 
 # ---------- КОМАНДЫ ----------
@@ -171,7 +168,7 @@ async def profile(update, context):
 
     await update.message.reply_text(
         f"Профиль разыскиваемого\n\n"
-        f"Капуста: {user['money']}\n"
+        f"Капусты: {user['money']}\n"
         f"Статьи: {user['articles']}\n"
         f"Титул: {user['title']}"
     )
@@ -187,7 +184,7 @@ async def top_money(update, context):
 
     text = "Топ 30 по капусте:\n"
     for i, (uid, data) in enumerate(top, 1):
-        text += f"{i}. {uid} — {data['money']}\n"
+        text += f"{i}. {uid} — {data['money']}Капусты\n"
 
     await update.message.reply_text(text)
 
@@ -259,7 +256,9 @@ def main():
         )
     )
 
-    app.add_handler(CommandHandler("gb_info", gb_info))
+    application.add_handler(
+    MessageHandler(filters.TEXT & filters.Regex(r"(?i)^гб инфо$"), gb_info)
+    )
 
     app.add_handler(MessageHandler(filters.Regex(r"^Профиль разыскиваемого$"), profile))
     app.add_handler(MessageHandler(filters.Regex(r"^Список разыскиваемых$"), wanted_list))
