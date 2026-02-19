@@ -184,6 +184,8 @@ async def gb_info(update, context):
 
 
 async def profile(update, context):
+    print(update.effective_user.id)
+    
     users = load_users()
     user = get_user(users, update.effective_user.id)
 
