@@ -16,6 +16,7 @@ import os
 import random
 
 TOKEN = os.getenv("TOKEN")
+print("TOKEN =", TOKEN)
 
 USERS_FILE = "data/users_data.txt"
 TITLES_FILE = "data/titles.txt"
