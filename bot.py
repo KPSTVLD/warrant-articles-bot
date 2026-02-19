@@ -257,8 +257,14 @@ def main():
     )
 
     app.add_handler(
-    MessageHandler(filters.TEXT & filters.Regex(r"(?i)^гб инфо$"), gb_info)
+        MessageHandler(
+            filters.TEXT & filters.Regex(r"(?i)^\s*гб\s+инфо\s*$"),
+            gb_info
+        )
     )
+
+    app.add_handler(CommandHandler("gb_info", gb_info))
+
 
     app.add_handler(MessageHandler(filters.Regex(r"^Профиль разыскиваемого$"), profile))
     app.add_handler(MessageHandler(filters.Regex(r"^Список разыскиваемых$"), wanted_list))
