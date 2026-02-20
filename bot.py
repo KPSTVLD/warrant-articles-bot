@@ -291,7 +291,6 @@ async def admin_restore(update, context):
     )
     
     
-    # -------- ЗАПУСК --------
     def main():
     app = Application.builder().token(TOKEN).build()
 
