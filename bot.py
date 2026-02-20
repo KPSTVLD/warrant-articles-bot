@@ -291,13 +291,12 @@ async def admin_restore(update, context):
     )
     
     TOKEN = "8388511848:AAEMnwXxJ6-gidIUWhZTuNOlsNxmQvynZV8"
-    
+
     def main():
-        print("MAIN STARTED")
-    
+    print("MAIN STARTED")
+
     app = Application.builder().token(TOKEN).build()
 
-  
     app.add_handler(
         MessageHandler(
             filters.TEXT & filters.Regex(re.compile(r"^гб статья$", re.IGNORECASE)),
@@ -320,15 +319,12 @@ async def admin_restore(update, context):
     )
 
     app.add_handler(CommandHandler("gb_info", gb_info))
-
-    
     app.add_handler(MessageHandler(filters.Regex(r"^Профиль разыскиваемого$"), profile))
     app.add_handler(MessageHandler(filters.Regex(r"^Список разыскиваемых$"), wanted_list))
     app.add_handler(MessageHandler(filters.Regex(r"^Топ капусты$"), top_money))
     app.add_handler(MessageHandler(filters.Regex(r"^Топ статей$"), top_articles))
     app.add_handler(MessageHandler(filters.Regex(r"^Магаз титулов$"), shop_titles))
     app.add_handler(MessageHandler(filters.Regex(r"^Купить титул .+"), buy_title))
-
     app.add_handler(CommandHandler("admin_restore", admin_restore))
 
     print("STARTING POLLING")
