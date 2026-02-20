@@ -290,9 +290,9 @@ async def admin_restore(update, context):
         "🎖 Титул покупается самостоятельно"
     )
     
-    -------- ЗАПУСК ----------
-
-def main():
+    
+    # -------- ЗАПУСК --------
+    def main():
     app = Application.builder().token(TOKEN).build()
 
     app.add_handler(
