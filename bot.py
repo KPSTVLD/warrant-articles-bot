@@ -264,9 +264,33 @@ async def buy_title(update, context):
     await save_users(users)
 
     await update.message.reply_text(f"Титул {title_name} куплен")
+    
+async def admin_restore(update, context):
+    if update.effective_user.id != ADMIN_ID:
+        return
 
+    if not context.args:
+        await update.message.reply_text("Использование: /admin_restore ID")
+        return
 
-# ---------- ЗАПУСК ----------
+    target_id = int(context.args[0])
+
+    users = load_users()
+    user = get_user(users, target_id)
+
+    user["money"] += 13000
+    user["articles"] += 135
+
+    await save_users(users)
+
+    await update.message.reply_text(
+        "✅ ВОССТАНОВЛЕНО:\n"
+        "🥬 +13 000 капусты\n"
+        "📄 +135 статей\n"
+        "🎖 Титул покупается самостоятельно"
+    )
+    
+    -------- ЗАПУСК ----------
 
 def main():
     app = Application.builder().token(TOKEN).build()
@@ -302,6 +326,8 @@ def main():
     app.add_handler(MessageHandler(filters.Regex(r"^Магаз титулов$"), shop_titles))
     app.add_handler(MessageHandler(filters.Regex(r"^Купить титул .+"), buy_title))
 
+    app.add_handler(CommandHandler("admin_restore", admin_restore))
+    
     app.run_polling()
 
 
