@@ -328,7 +328,3 @@ async def admin_restore(update, context):
     app.add_handler(CommandHandler("admin_restore", admin_restore))
     
     app.run_polling()
-
-
-if __name__ == "__main__":
-    main()
