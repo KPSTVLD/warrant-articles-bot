@@ -290,9 +290,9 @@ async def admin_restore(update, context):
         "🎖 Титул покупается самостоятельно"
     )
     
-
     def main():
         app = Application.builder().token(TOKEN).build()
+        
 
     app.add_handler(
         MessageHandler(
@@ -326,6 +326,5 @@ async def admin_restore(update, context):
 
     app.run_polling()
     
-
 if __name__ == "__main__":
     main()
