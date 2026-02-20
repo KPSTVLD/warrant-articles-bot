@@ -334,4 +334,3 @@ async def admin_restore(update, context):
 
 
 if __name__ == "__main__":
-    main()
