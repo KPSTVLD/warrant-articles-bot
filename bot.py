@@ -294,6 +294,9 @@ async def admin_restore(update, context):
     def main():
     app = Application.builder().token(TOKEN).build()
 
+
+
+    
     app.add_handler(
         MessageHandler(
             filters.TEXT & filters.Regex(re.compile(r"^гб статья$", re.IGNORECASE)),
