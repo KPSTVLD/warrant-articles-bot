@@ -290,9 +290,8 @@ async def admin_restore(update, context):
         "🎖 Титул покупается самостоятельно"
     )
     
-    def main():
-        app = Application.builder().token(TOKEN).build()
-        
+def main():
+    app = Application.builder().token(TOKEN).build()
 
     app.add_handler(
         MessageHandler(
@@ -324,7 +323,10 @@ async def admin_restore(update, context):
     app.add_handler(MessageHandler(filters.Regex(r"^Купить титул .+"), buy_title))
     app.add_handler(CommandHandler("admin_restore", admin_restore))
 
+
     app.run_polling()
-    
+
+
+
 if __name__ == "__main__":
     main()
