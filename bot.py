@@ -289,7 +289,13 @@ async def admin_restore(update, context):
         "📄 +135 статей\n"
         "🎖 Титул покупается самостоятельно"
     )
+
+    from telegram.ext import Application, CommandHandler, MessageHandler, filters import re
     
+    TOKEN = "8388511848:AAEMnwXxJ6-gidIUWhZTuNOlsNxmQvynZV8"
+    
+    def main():
+        print("MAIN STARTED")
     
     app = Application.builder().token(TOKEN).build()
 
@@ -316,8 +322,6 @@ async def admin_restore(update, context):
     )
 
     app.add_handler(CommandHandler("gb_info", gb_info))
-
-
     app.add_handler(MessageHandler(filters.Regex(r"^Профиль разыскиваемого$"), profile))
     app.add_handler(MessageHandler(filters.Regex(r"^Список разыскиваемых$"), wanted_list))
     app.add_handler(MessageHandler(filters.Regex(r"^Топ капусты$"), top_money))
@@ -327,4 +331,9 @@ async def admin_restore(update, context):
 
     app.add_handler(CommandHandler("admin_restore", admin_restore))
 
+    print("STARTING POLLING")
     app.run_polling()
+
+
+if __name__ == "__main__":
+    main()
