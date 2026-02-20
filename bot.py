@@ -320,6 +320,8 @@ async def admin_restore(update, context):
     )
 
     app.add_handler(CommandHandler("gb_info", gb_info))
+
+    
     app.add_handler(MessageHandler(filters.Regex(r"^Профиль разыскиваемого$"), profile))
     app.add_handler(MessageHandler(filters.Regex(r"^Список разыскиваемых$"), wanted_list))
     app.add_handler(MessageHandler(filters.Regex(r"^Топ капусты$"), top_money))
@@ -331,3 +333,6 @@ async def admin_restore(update, context):
 
     print("STARTING POLLING")
     app.run_polling()
+
+if __name__ == "__main__":
+    main()
