@@ -289,8 +289,6 @@ async def admin_restore(update, context):
         "📄 +135 статей\n"
         "🎖 Титул покупается самостоятельно"
     )
-    import re
-    from telegram.ext import Application, CommandHandler, MessageHandler, filters
     
     TOKEN = "8388511848:AAEMnwXxJ6-gidIUWhZTuNOlsNxmQvynZV8"
     
